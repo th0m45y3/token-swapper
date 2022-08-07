@@ -3,7 +3,6 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-//import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/SafeMath.sol";
 
 contract NFT is ERC721 {
@@ -19,11 +18,6 @@ contract NFT is ERC721 {
         maxSupply = maxsupply;
     }
 
-    //helper
-    function watchCounter() public view returns(uint){
-        return(tokenCounter.current());
-    }
-
     function mint(uint NFTamount) 
     public {
         require(tokenCounter.current() + NFTamount < maxSupply, "NFT sold out or amount exceeds the limit");
@@ -32,8 +26,6 @@ contract NFT is ERC721 {
         for(uint i = 0; i < NFTamount; i++) { 
             uint tokenId_ = tokenCounter.current() + 1; // starting from 1
             super._safeMint(msg.sender, tokenId_);
-            //string memory tokenURI_ = tokenURI(tokenId_); //todo
-            //super._setTokenURI(tokenId_, tokenURI_);
             tokenCounter.increment();
         }
     }
