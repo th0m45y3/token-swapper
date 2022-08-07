@@ -1,21 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.4;
 
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+//import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/SafeMath.sol";
 
-error Unauthorized(address caller);
-
-contract NFT is ERC721URIStorage {
+contract NFT is ERC721 {
     using Counters for Counters.Counter;
     Counters.Counter private tokenCounter;
-    uint8 public maxMintPerWallet;
-    uint8 public maxSupply;
+    uint public maxMintPerWallet;
+    uint public maxSupply;
+    uint8 public centDecimals = 16;
 
-    constructor(uint8 maxMintPerWallet_, uint8 maxSupply_) payable ERC721("Non-fungible token", "NFT") {
-        require(maxMintPerWallet_ < maxSupply_, "maxSupply must be greater than maxMintPerWallet");
-        maxMintPerWallet = maxMintPerWallet_;
-        maxSupply = maxSupply_;
+    constructor(uint maxmint, uint maxsupply) payable ERC721("Non-fungible token", "NFT") {
+        require(maxmint < maxsupply, "maxSupply must be greater than maxMintPerWallet");
+        maxMintPerWallet = maxmint;
+        maxSupply = maxsupply;
     }
 
     //helper
@@ -23,25 +24,17 @@ contract NFT is ERC721URIStorage {
         return(tokenCounter.current());
     }
 
-    //todo: multiple mint
-    function mint() 
-        public
-        returns (uint) 
-    {
-        require(tokenCounter.current() < maxSupply, "NFT sold out");
+    function mint(uint NFTamount) 
+    public {
+        require(tokenCounter.current() + NFTamount < maxSupply, "NFT sold out or amount exceeds the limit");
         require(balanceOf(msg.sender) < maxMintPerWallet, "Minting maximum reached for wallet");
 
-        uint tokenId_ = tokenCounter.current() + 1; // starting from 1
-        super._safeMint(msg.sender, tokenId_);
-        string memory tokenURI_ = tokenURI(tokenId_); //todo
-        super._setTokenURI(tokenId_, tokenURI_);
-        tokenCounter.increment();
-        return(tokenId_);
-    }
-
-    //useless
-    function approval(address to_, uint tokenId_) public {
-        if (msg.sender != ownerOf(tokenId_)) revert Unauthorized(msg.sender);
-        super.approve(to_, tokenId_);
+        for(uint i = 0; i < NFTamount; i++) { 
+            uint tokenId_ = tokenCounter.current() + 1; // starting from 1
+            super._safeMint(msg.sender, tokenId_);
+            //string memory tokenURI_ = tokenURI(tokenId_); //todo
+            //super._setTokenURI(tokenId_, tokenURI_);
+            tokenCounter.increment();
+        }
     }
 }
